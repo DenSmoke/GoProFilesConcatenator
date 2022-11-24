@@ -23,6 +23,7 @@ public static class Ffmpeg
     public static async Task ConcatFilesAsync(IEnumerable<string> files, string output, CancellationToken ct = default)
     {
         StreamWriter file = File.CreateText(VIDEOLIST_FILENAME);
+
         await using (file.ConfigureAwait(false))
         {
             foreach (string path in files)
@@ -40,6 +41,7 @@ public static class Ffmpeg
             }
         };
         process.Start();
+
         try
         {
             await process.WaitForExitAsync(ct).ConfigureAwait(false);

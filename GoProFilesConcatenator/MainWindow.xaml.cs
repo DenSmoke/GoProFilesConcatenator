@@ -15,7 +15,7 @@ namespace GoProFilesConcatenator;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private readonly Regex _goProFileRegex = new(@"GX(\d{2})(\d{4})\.MP4", RegexOptions.Compiled);
+    private readonly Regex _goProFileRegex = MyRegex();
     private CancellationTokenSource _cts = new();
 
     public MainWindow()
@@ -23,14 +23,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             MessageBox.Show(e.ExceptionObject.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        Closed += OnWindowClosed;
     }
 
-    private void OnWindowClosed(object sender, EventArgs e)
-    {
-        _cts.Cancel();
-        _cts.Dispose();
-    }
+    [GeneratedRegex("GX(\\d{2})(\\d{4})\\.MP4", RegexOptions.Compiled)]
+    private static partial Regex MyRegex();
 
     /// <summary>
     ///     Concat GoPro video files
@@ -39,29 +35,35 @@ public partial class MainWindow : Window
     /// <param name="outputDir">Output directory</param>
     public async Task ConcatGoProFilesAsync(string inputDir, string outputDir, CancellationToken ct)
     {
-        string[] files = Directory.GetFiles(inputDir);
         Dictionary<int, List<GoProFile>> dict = new();
+        string[] files = Directory.GetFiles(inputDir);
+
         for (int i = 0; i < files.Length; i++)
         {
             string path = files[i];
             Match match = _goProFileRegex.Match(path);
+
             if (match.Success)
             {
                 byte number = byte.Parse(match.Groups[1].Value);
                 ushort groupNumber = ushort.Parse(match.Groups[2].Value);
                 GoProFile goProFile = new(number, groupNumber, path);
-                if (dict.ContainsKey(goProFile.GroupNumber))
-                    dict[goProFile.GroupNumber].Add(goProFile);
+
+                if (dict.TryGetValue(goProFile.GroupNumber, out List<GoProFile> value))
+                    value.Add(goProFile);
                 else
                     dict[goProFile.GroupNumber] = new List<GoProFile> { goProFile };
             }
         }
+
         IOrderedEnumerable<int> groups = dict.Keys.OrderBy(x => x);
         int n = 1;
+
         foreach (int group in groups)
         {
             string outputFile = Path.Combine(outputDir, $"video{n++}.mp4");
             List<GoProFile> groupFiles = dict[group];
+
             if (groupFiles.Count == 1)
             {
                 string oldPath = groupFiles[0].Path;
@@ -89,6 +91,7 @@ public partial class MainWindow : Window
             Title = "Input folder",
             IsFolderPicker = true
         };
+
         if (inputFolderDialog.ShowDialog() == CommonFileDialogResult.Ok)
         {
             using CommonOpenFileDialog outputFolderDialog = new()
@@ -96,6 +99,7 @@ public partial class MainWindow : Window
                 Title = "Output folder",
                 IsFolderPicker = true
             };
+
             if (outputFolderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 try
