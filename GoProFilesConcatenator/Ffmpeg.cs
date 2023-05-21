@@ -20,7 +20,7 @@ public static class Ffmpeg
     /// </summary>
     /// <param name="files">Collection of file paths</param>
     /// <param name="output">Output directory</param>
-    public static async Task ConcatFilesAsync(IEnumerable<string> files, string output, CancellationToken ct = default)
+    public static async Task ConcatFilesAsync(IEnumerable<string> files, string output, bool rotate, CancellationToken ct = default)
     {
         StreamWriter file = File.CreateText(VIDEOLIST_FILENAME);
 
@@ -30,7 +30,9 @@ public static class Ffmpeg
                 await file.WriteLineAsync($"file '{path}'".AsMemory(), ct).ConfigureAwait(false);
         }
 
-        string args = $"-f concat -safe 0 -i {VIDEOLIST_FILENAME} -c copy -metadata:s:v:0 rotate=180 \"{output}\"";
+        string args = rotate 
+            ? $"-f concat -safe 0 -i {VIDEOLIST_FILENAME} -c copy -metadata:s:v:0 rotate=180 \"{output}\""
+            : $"-f concat -safe 0 -i {VIDEOLIST_FILENAME} -c copy \"{output}\"";
 
         using Process process = new()
         {

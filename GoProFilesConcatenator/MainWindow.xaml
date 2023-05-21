@@ -12,7 +12,8 @@
         </Grid.RowDefinitions>
         <Button HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="OnStartClick" Width="50" Grid.Row="0">Start</Button>
         <Button HorizontalAlignment="Left" Margin="65,10,0,0" VerticalAlignment="Top" Click="OnCancelClick"  Width="50" Grid.Row="0">Cancel</Button>
-        <Label VerticalAlignment="Top" HorizontalAlignment="Center" Foreground="Red" Margin="0,7,0,0" Grid.Row="0">Аttention: ffmpeg.exe must be located in the directory of this application</Label>
+        <CheckBox x:Name="RotateCheckBox" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.Row="0" Margin="121,13,0,0">Rotate 180</CheckBox>
+        <Label VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="Red" Margin="215,7,0,0" Grid.Row="0">Аttention: ffmpeg.exe must be located in the directory of this application</Label>
         <TextBox x:Name="Output" Margin="10,10,10,10" Grid.Row="1" AcceptsReturn="True" TextWrapping="WrapWithOverflow" VerticalScrollBarVisibility="Auto"/>
     </Grid>
 </Window>

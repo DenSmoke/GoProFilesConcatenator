@@ -25,7 +25,7 @@ public partial class MainWindow : Window
             MessageBox.Show(e.ExceptionObject.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
-    [GeneratedRegex("GX(\\d{2})(\\d{4})\\.MP4", RegexOptions.Compiled)]
+    [GeneratedRegex("G[H,X](\\d{2})(\\d{4})\\.MP4", RegexOptions.Compiled)]
     private static partial Regex MyRegex();
 
     /// <summary>
@@ -33,7 +33,7 @@ public partial class MainWindow : Window
     /// </summary>
     /// <param name="inputDir">Input directory</param>
     /// <param name="outputDir">Output directory</param>
-    public async Task ConcatGoProFilesAsync(string inputDir, string outputDir, CancellationToken ct)
+    public async Task ConcatGoProFilesAsync(string inputDir, string outputDir, bool rotate, CancellationToken ct)
     {
         Dictionary<int, List<GoProFile>> dict = new();
         string[] files = Directory.GetFiles(inputDir);
@@ -76,13 +76,14 @@ public partial class MainWindow : Window
                 List<string> paths = groupFiles.ConvertAll(x => x.Path);
                 string input = string.Join(Environment.NewLine, paths);
                 LogFileConvert(input, outputFile);
-                await Ffmpeg.ConcatFilesAsync(paths, outputFile, ct).ConfigureAwait(false);
+                await Ffmpeg.ConcatFilesAsync(paths, outputFile, rotate, ct).ConfigureAwait(false);
             }
         }
     }
 
-    private void LogFileConvert(string input, string output) => Dispatcher.Invoke(() =>
-        Output.AppendText($"{Environment.NewLine}{input} => {output}{Environment.NewLine}"));
+    private void Log(string message) => Dispatcher.Invoke(() => Output.AppendText(message));
+
+    private void LogFileConvert(string input, string output) => Log($"{Environment.NewLine}{input} => {output}{Environment.NewLine}");
 
     private async void OnStartClick(object sender, RoutedEventArgs e)
     {
@@ -104,15 +105,13 @@ public partial class MainWindow : Window
             {
                 try
                 {
-                    await ConcatGoProFilesAsync(inputFolderDialog.FileName, outputFolderDialog.FileName, _cts.Token).ConfigureAwait(false);
+                    Log("Start");
+                    await ConcatGoProFilesAsync(inputFolderDialog.FileName, outputFolderDialog.FileName, RotateCheckBox.IsChecked ?? false, _cts.Token).ConfigureAwait(false);
+                    Log("End");
                 }
                 catch (Exception ex)
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        Output.AppendText(Environment.NewLine);
-                        Output.AppendText(ex.ToString());
-                    });
+                    Log($"{Environment.NewLine}ex.ToString()");
                 }
             }
         }
